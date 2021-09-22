@@ -1,4 +1,5 @@
 import random
+import time
 
 chords = {"E":      "022100",
           "Em":     "022000",
@@ -20,12 +21,10 @@ chords = {"E":      "022100",
           "F":      "x3321x", 
           }
 
-
 def chord2Ascii(chord):
-  fingers = chords[chord]
-  
-  pad= " "*2
 
+  fingers = chords[chord]
+  pad= " "*2
   lines=[]
   
   if (len(chord)>3):
@@ -62,8 +61,113 @@ def pickRandomChord(prev):
         chord = list(chords.keys())[idx]
     return chord
     
+def generateRandomChords(chordsCount):
+    c=""
+    l=[]
+    for i in range(chordsCount):
+        c = pickRandomChord(c);
+        l.append(c)
+    return l
 
-c=""
-for i in range(10):
-    c = pickRandomChord(c);
-    print(chord2Ascii(c))    
+def generateRandomChordsGroups(groupCount):
+    c=""
+    l=[]
+    for i in range(groupCount):
+        c = pickRandomChord(c);
+        
+        note = c[:1]
+        for chord in chords:
+            if chord[:1]==note:
+                l.append(chord);
+    return l
+
+
+def buildTest(scenarioId, count):
+
+    test=[]
+
+    selectedChords = []
+    if (scenarioId==0):
+        selectedChords = generateRandomChords(count)
+    elif (scenarioId==1):
+        selectedChords = generateRandomChordsGroups(1+int(count/5))[:count]
+    else:
+        print("unknown scenario")
+        return test 
+
+    #print("selectedChords")
+    #print(str(selectedChords))
+
+    for c in selectedChords:
+        test.append({
+            "name" : c,
+            "fingers" : chords[c],
+            "allocatedTimeS" : 2,
+            "executionTimeS" : 0,
+            # state = 0 : not run
+            # state = 1 : success with visual help
+            # state = 2 : success without visual help
+            # state = -1 : failed / timeout
+            "state": 0,
+            "started": 0
+            })
+    return test
+
+def wasChordPlayed(chord):
+    return False;
+
+def _runStep(step):
+
+    #print(step);
+
+    step["started"]=time.time()
+
+    print("\n\n\n")
+    print("_"*60)
+    
+    print(" Play " + step["name"] )
+
+    while time.time()-step["started"]<step["allocatedTimeS"]:
+        time.sleep(0.1)
+        if wasChordPlayed(step["name"]):
+            step["state"] = 2
+            step["executionTimeS"] = time.time()
+
+    if step["state"] < 2:
+        # second chance
+        print("\nReview chord diagram\n")
+        print(chord2Ascii(step["name"]))
+
+    while time.time()-step["started"]<2*step["allocatedTimeS"]:
+        time.sleep(0.1)
+        if wasChordPlayed(step["name"]):
+            step["state"] = 1
+            step["executionTimeS"] = time.time()
+
+    if step["state"] == 0:
+        step["state"] = - 1
+
+def runScenario(scenarioId, count):
+
+    test = buildTest(scenarioId, count)
+    for step in test:
+        _runStep(step)
+
+        
+
+#for c in generateRandomChords(10):
+#    print(chord2Ascii(c))    
+
+
+
+#for c in generateRandomChordsGroups(5):
+#    print(chord2Ascii(c))    
+
+#print(buildTest(0, 11))
+
+#print(buildTest(1, 11))
+
+
+runScenario(0, 5)
+
+
