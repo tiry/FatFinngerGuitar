@@ -8,6 +8,10 @@ This is a simple python CLI that I wrote to help me learn guitar chords:
  - the captured signal is analyzed via [chord-extractor](https://github.com/ohollo/chord-extractor/)
     - extract chords
 
+### Screenshot
+
+<img src="img/Screenshot.png" width="600px"/>
+
 ### References
 
  - https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html

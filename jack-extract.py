@@ -18,7 +18,7 @@ amplify=50000
 fs = 44100 
 
 # frames captured before flushing
-cap_frames=200
+cap_frames=150
 
 clientname = "Tiry Chord Listener"
 servername = None
@@ -47,7 +47,7 @@ def dumpFrames():
     
     fileName ="output_" + str(counter)+ "_.wav" 
     write(fileName, fs, capture)
-    guitar_signal=guitar_signal[cap_frames/2:]
+    guitar_signal=guitar_signal[int(3*cap_frames/4):]
     counter=counter+1
     samples_to_process.append(fileName)
 
@@ -68,12 +68,19 @@ def shutdown(status, reason):
     print("reason:", reason)
     event.set()
 
+recentChords=[]
+
 def chordsFound_cb(results: LabelledChordSequence):
   global lastChord
+  global recentChords
   for chord in results.sequence:
-    if (chord.chord!='N'):
-      if (lastChord!=chord.chord):
-        lastChord=chord.chord
+    played=chord.chord.strip()
+    if (played!='N'):
+      if (lastChord!=played):
+        lastChord=played
+        recentChords.append(lastChord)
+        if (len(recentChords)>4):
+            recentChords=recentChords[:4]
         print(lastChord)
 
 def chordWatcher():
@@ -82,26 +89,41 @@ def chordWatcher():
             checkChords()
         time.sleep(1)
 
-def checkChords():
+chordino = Chordino(roll_on=1)
+clear_conversion_cache()
 
-  chordino = Chordino(roll_on=1)
+max_samples_to_process=10
 
+def checkChords():  
+  global samples_to_process
   if len(samples_to_process)==0:
     print("nothing to check")
     return
-  # Optionally clear cache of file conversions (e.g. wav files that have been converted from midi)
-  clear_conversion_cache()
-
+  if len(samples_to_process)> max_samples_to_process:
+    samples_to_process=samples_to_process[-max_samples_to_process:]
+  
   files_to_extract_from=[]
-  while (len(samples_to_process)>0 and len(files_to_extract_from)<5):
+  while (len(samples_to_process)>0 and len(files_to_extract_from)<max_samples_to_process):
     files_to_extract_from.append(samples_to_process.pop(0));
 
-  res = chordino.extract_many(files_to_extract_from, callback=chordsFound_cb, num_extractors=2,
-                              num_preprocessors=2, max_files_in_cache=10, stop_on_error=False)
+  res = chordino.extract_many(files_to_extract_from, callback=chordsFound_cb, num_extractors=4,
+                              num_preprocessors=4, max_files_in_cache=50, stop_on_error=False)
 
   for processed in files_to_extract_from:
     os.remove(processed)
 
+def wasChordPlayed(chord):
+    #print("looking for " + chord + " in " + str(recentChords))
+    for c in recentChords:
+        if c==chord:
+            print("\nYEAHHHHHH!!!\n")
+            return True
+    return False
+
+def chordQuestions():
+    test=chordsdb.runScenario(0, 5, wasChordPlayed)
+    print("\n" +"-"*40 + " end of test \n")
+    chordsdb.printTest(test)
 
 client.inports.register("input_0")
 
@@ -127,6 +149,10 @@ with client:
     detector = threading.Thread(target=chordWatcher, args=())
     detector.start()
 
+
+    print("start quizz thread")   
+    quiz = threading.Thread(target=chordQuestions, args=())
+    quiz.start()
 
     print("Press Ctrl+C to stop")
     try:
