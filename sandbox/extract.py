@@ -3,12 +3,12 @@ from chord_extractor import clear_conversion_cache, LabelledChordSequence
 import sys, getopt
 
 files_to_extract_from = [
-#  'rsi-riff.wav'
+  'rsi.wav'
 #  ,'output.wav'
 ]
 
-for i in range(0,30):
-  files_to_extract_from.append("output_" + str(i) + "_.wav")
+#for i in range(0,30):
+#  files_to_extract_from.append("output_" + str(i) + "_.wav")
 
 lastChord=""
 

@@ -14,7 +14,7 @@ import chordsdb
 # Guitar port in Jack 
 guitar_port=1
 # amplify captured signal
-amplify=5
+amplify=2
 # Sampling rate
 fs = 44100 
 
@@ -81,7 +81,7 @@ def chordsFound_cb(results: LabelledChordSequence):
         lastChord=played
         recentChords.append(lastChord)
         if (len(recentChords)>4):
-            recentChords=recentChords[:4]
+            recentChords=recentChords[-4:]
         print(lastChord)
 
 def chordWatcher():
@@ -113,7 +113,7 @@ def wasChordPlayed(chord):
     return False
 
 def chordQuestions():
-    test=chordsdb.runScenario(0, 5, wasChordPlayed)
+    test=chordsdb.runScenario(0, 20, wasChordPlayed)
     print("\n" +"-"*40 + " end of test \n")
     chordsdb.printTest(test)
 
@@ -144,7 +144,7 @@ with client:
 
     print("start quizz thread")   
     quiz = threading.Thread(target=chordQuestions, args=())
-    #quiz.start()
+    quiz.start()
 
     print("Press Ctrl+C to stop")
     try:
