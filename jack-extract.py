@@ -7,6 +7,7 @@ import numpy
 import time
 from scipy.io.wavfile import write
 from chord_extractor.extractors import Chordino
+from ramChordino import RAMChordino
 from chord_extractor import clear_conversion_cache, LabelledChordSequence
 import chordsdb
 
@@ -69,6 +70,10 @@ def shutdown(status, reason):
     event.set()
 
 recentChords=[]
+chordino = RAMChordino(roll_on=1)
+clear_conversion_cache()
+max_samples_to_process=10
+
 
 def chordsFound_cb(results: LabelledChordSequence):
   global lastChord
@@ -87,12 +92,7 @@ def chordWatcher():
     while True:
         if len(samples_to_process)>0:
             checkChords()
-        time.sleep(1)
-
-chordino = Chordino(roll_on=1)
-clear_conversion_cache()
-
-max_samples_to_process=10
+        time.sleep(0.1)
 
 def checkChords():  
   global samples_to_process
@@ -111,6 +111,8 @@ def checkChords():
 
   for processed in files_to_extract_from:
     os.remove(processed)
+
+### Handle Test
 
 def wasChordPlayed(chord):
     #print("looking for " + chord + " in " + str(recentChords))
@@ -152,7 +154,7 @@ with client:
 
     print("start quizz thread")   
     quiz = threading.Thread(target=chordQuestions, args=())
-    quiz.start()
+    #quiz.start()
 
     print("Press Ctrl+C to stop")
     try:
