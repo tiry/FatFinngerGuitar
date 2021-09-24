@@ -14,7 +14,7 @@ import chordsdb
 # Guitar port in Jack 
 guitar_port=1
 # amplify captured signal
-amplify=50000
+amplify=5
 # Sampling rate
 fs = 44100 
 
@@ -45,19 +45,14 @@ def dumpFrames():
     global counter
     global samples_to_process
     capture = numpy.concatenate(guitar_signal)
-    
-    fileName ="output_" + str(counter)+ "_.wav" 
-    write(fileName, fs, capture)
     guitar_signal=guitar_signal[int(3*cap_frames/4):]
     counter=counter+1
-    samples_to_process.append(fileName)
-
+    samples_to_process.append(capture)
 
 @client.set_process_callback
 def process(frames):
-    #assert len(client.inports) == len(client.outports)
     assert frames == client.blocksize
-    data =  numpy.int16(client.inports[0].get_array() * amplify)
+    data = numpy.asarray(client.inports[0].get_array() * amplify).astype(numpy.float32)
     guitar_signal.append(data)
     if (len(guitar_signal)>cap_frames):
         dumpFrames()
@@ -74,11 +69,12 @@ chordino = RAMChordino(roll_on=1)
 clear_conversion_cache()
 max_samples_to_process=10
 
+### handle Chord detector
 
 def chordsFound_cb(results: LabelledChordSequence):
   global lastChord
   global recentChords
-  for chord in results.sequence:
+  for chord in results:
     played=chord.chord.strip()
     if (played!='N'):
       if (lastChord!=played):
@@ -99,18 +95,12 @@ def checkChords():
   if len(samples_to_process)==0:
     print("nothing to check")
     return
-  if len(samples_to_process)> max_samples_to_process:
-    samples_to_process=samples_to_process[-max_samples_to_process:]
-  
-  files_to_extract_from=[]
-  while (len(samples_to_process)>0 and len(files_to_extract_from)<max_samples_to_process):
-    files_to_extract_from.append(samples_to_process.pop(0));
 
-  res = chordino.extract_many(files_to_extract_from, callback=chordsFound_cb, num_extractors=4,
-                              num_preprocessors=4, max_files_in_cache=50, stop_on_error=False)
-
-  for processed in files_to_extract_from:
-    os.remove(processed)
+  while (len(samples_to_process)>0):
+    sample = samples_to_process.pop(0)
+    #sample = numpy.asarray(sample).astype(numpy.float32)
+    res = chordino.ramExtract(sample, fs)
+    chordsFound_cb(res)
 
 ### Handle Test
 
