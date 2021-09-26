@@ -1,5 +1,6 @@
 import random
 import time
+import chordisplay
 
 chords = {"E":      "022100",
           "Em":     "022000",
@@ -127,6 +128,9 @@ def _runStep(step, wasChordPlayed):
     print("_"*60)
     
     print(" Play " + step["name"] )
+    
+    chordisplay.displayChord(step["name"])
+
 
     while time.time()-t0<step["allocatedTimeS"]:
         time.sleep(0.1)
@@ -139,6 +143,8 @@ def _runStep(step, wasChordPlayed):
         # second chance
         print("\nReview chord diagram\n")
         print(chord2Ascii(step["name"]))
+        chordisplay.displayChord(step["name"], chords[step["name"]])
+
 
     while time.time()-t0<2*step["allocatedTimeS"]:
         time.sleep(0.1)

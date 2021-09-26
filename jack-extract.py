@@ -10,6 +10,7 @@ from chord_extractor.extractors import Chordino
 from ramChordino import RAMChordino
 from chord_extractor import clear_conversion_cache, LabelledChordSequence
 import chordsdb
+import chordisplay
 
 # Guitar port in Jack 
 guitar_port=1
@@ -140,6 +141,11 @@ with client:
     print("start detector thread")   
     detector = threading.Thread(target=chordWatcher, args=())
     detector.start()
+
+
+    print("start display")
+    display = threading.Thread(target=chordisplay.main, args=())
+    display.start()
 
 
     print("start quizz thread")   
