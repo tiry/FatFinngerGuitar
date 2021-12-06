@@ -12,6 +12,12 @@ This is a simple python CLI that I wrote to help me learn guitar chords:
 
 <img src="img/Screenshot.png" width="600px"/>
 
+### WebChords
+
+WebChords is a simple P5JS SPA for building the list of guitar chords for a given key and fornula:
+
+https://www.delprat.net/guitar/index.html
+
 ### References
 
  - https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html

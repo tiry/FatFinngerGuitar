@@ -110,6 +110,7 @@ def wasChordPlayed(chord):
     for c in recentChords:
         if c==chord:
             print("\nYEAHHHHHH!!!\n")
+            chordisplay.displayChord(chord, chordsdb.chords[chord], True)
             return True
     return False
 
